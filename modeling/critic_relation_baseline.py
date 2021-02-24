@@ -13,6 +13,8 @@ from .backbones.resnet_ibn_a import resnet50_ibn_a
 from models.rga_model import ResNet50_RGA_Model
 from .backbones.relation import Relation
 from .backbones.relation_with_region import Relation_with_region
+from .backbones.critic_attention import Critic_Attention
+
 def weights_init_kaiming(m):
     classname = m.__class__.__name__
     if classname.find('Linear') != -1:
@@ -43,8 +45,8 @@ class Critic_Baseline(nn.Module):
         super(Critic_Baseline, self).__init__()
         if model_name == 'resnet18':
             self.in_planes = 512
-            self.base = ResNet(last_stride=last_stride, 
-                               block=BasicBlock, 
+            self.base = ResNet(last_stride=last_stride,
+                               block=BasicBlock,
                                layers=[2, 2, 2, 2])
         elif model_name == 'resnet34':
             self.in_planes = 512
@@ -59,8 +61,9 @@ class Critic_Baseline(nn.Module):
             # self.base = ResNet(last_stride=last_stride,
             #                    block=Bottleneck,
             #                    layers=[3, 4, 6, 3])
-            self.base=Relation(pretrained=True, num_feat=2048, height=256, width=128,
-		dropout=0, num_classes=num_classes, last_stride=1, branch_name='rgasc', scale=8, d_scale=8)
+            self.base = Relation(pretrained=True, num_feat=2048, height=256, width=128,
+                                 dropout=0, num_classes=num_classes, last_stride=1, branch_name='rgasc', scale=8,
+                                 d_scale=8)
         elif model_name == 'resnet50_rgasc_region':
             # self.base = ResNet(last_stride=last_stride,
             #                    block=Bottleneck,
@@ -69,76 +72,84 @@ class Critic_Baseline(nn.Module):
             # models.create(args.arch, pretrained=True, num_feat=args.features,
             #               height=args.height, width=args.width, dropout=args.dropout,
             #               num_classes=num_classes, branch_name=args.branch_name)
+        elif model_name == 'resnet50_rgasc_critic':
+            # self.base = ResNet(last_stride=last_stride,
+            #                    block=Bottleneck,
+            #                    layers=[3, 4, 6, 3])
+            self.base = Critic_Attention()
+            # models.create(args.arch, pretrained=True, num_feat=args.features,
+            #               height=args.height, width=args.width, dropout=args.dropout,
+            #               num_classes=num_classes, branch_name=args.branch_name)
         elif model_name == 'resnet101':
             self.base = ResNet(last_stride=last_stride,
-                               block=Bottleneck, 
+                               block=Bottleneck,
                                layers=[3, 4, 23, 3])
         elif model_name == 'resnet152':
-            self.base = ResNet(last_stride=last_stride, 
+            self.base = ResNet(last_stride=last_stride,
                                block=Bottleneck,
                                layers=[3, 8, 36, 3])
-            
+
         elif model_name == 'se_resnet50':
-            self.base = SENet(block=SEResNetBottleneck, 
-                              layers=[3, 4, 6, 3], 
-                              groups=1, 
+            self.base = SENet(block=SEResNetBottleneck,
+                              layers=[3, 4, 6, 3],
+                              groups=1,
                               reduction=16,
-                              dropout_p=None, 
-                              inplanes=64, 
+                              dropout_p=None,
+                              inplanes=64,
                               input_3x3=False,
-                              downsample_kernel_size=1, 
+                              downsample_kernel_size=1,
                               downsample_padding=0,
-                              last_stride=last_stride) 
+                              last_stride=last_stride)
         elif model_name == 'se_resnet101':
-            self.base = SENet(block=SEResNetBottleneck, 
-                              layers=[3, 4, 23, 3], 
-                              groups=1, 
+            self.base = SENet(block=SEResNetBottleneck,
+                              layers=[3, 4, 23, 3],
+                              groups=1,
                               reduction=16,
-                              dropout_p=None, 
-                              inplanes=64, 
+                              dropout_p=None,
+                              inplanes=64,
                               input_3x3=False,
-                              downsample_kernel_size=1, 
+                              downsample_kernel_size=1,
                               downsample_padding=0,
                               last_stride=last_stride)
         elif model_name == 'se_resnet152':
-            self.base = SENet(block=SEResNetBottleneck, 
+            self.base = SENet(block=SEResNetBottleneck,
                               layers=[3, 8, 36, 3],
-                              groups=1, 
+                              groups=1,
                               reduction=16,
-                              dropout_p=None, 
-                              inplanes=64, 
+                              dropout_p=None,
+                              inplanes=64,
                               input_3x3=False,
-                              downsample_kernel_size=1, 
+                              downsample_kernel_size=1,
                               downsample_padding=0,
-                              last_stride=last_stride)  
+                              last_stride=last_stride)
         elif model_name == 'se_resnext50':
             self.base = SENet(block=SEResNeXtBottleneck,
-                              layers=[3, 4, 6, 3], 
-                              groups=32, 
+                              layers=[3, 4, 6, 3],
+                              groups=32,
                               reduction=16,
-                              dropout_p=None, 
-                              inplanes=64, 
+                              dropout_p=None,
+                              inplanes=64,
                               input_3x3=False,
-                              downsample_kernel_size=1, 
+                              downsample_kernel_size=1,
                               downsample_padding=0,
-                              last_stride=last_stride) 
+                              last_stride=last_stride)
         elif model_name == 'se_resnext101':
             self.base = SENet(block=SEResNeXtBottleneck,
-                              layers=[3, 4, 23, 3], 
-                              groups=32, 
+                              layers=[3, 4, 23, 3],
+                              groups=32,
                               reduction=16,
-                              dropout_p=None, 
-                              inplanes=64, 
+                              dropout_p=None,
+                              inplanes=64,
                               input_3x3=False,
-                              downsample_kernel_size=1, 
+                              downsample_kernel_size=1,
                               downsample_padding=0,
                               last_stride=last_stride)
         elif model_name == 'senet154':
-            self.base = SENet(block=SEBottleneck, 
+            self.base = SENet(block=SEBottleneck,
                               layers=[3, 8, 36, 3],
-                              groups=64, 
+                              groups=64,
                               reduction=16,
-                              dropout_p=0.2, 
+                              dropout_p=0.2,
                               last_stride=last_stride)
         elif model_name == 'resnet50_ibn_a':
             self.base = resnet50_ibn_a(last_stride)
@@ -166,10 +177,11 @@ class Critic_Baseline(nn.Module):
             self.classifier.apply(weights_init_classifier)
 
     def forward(self, x):
-        global_feat,part_feat,part_cls=self.base(x)
+        global_feat, v= self.base(x)
+        # global_feat, part_feat, part_cls = self.base(x)
         global_feat = self.gap(global_feat)  # (b, 2048, 1, 1)
         global_feat = global_feat.view(global_feat.shape[0], -1)  # flatten to (bs, 2048)
-        part_feat= part_feat.view(part_feat.size(0), -1)
+        # part_feat = part_feat.view(part_feat.size(0), -1)
         import pdb
         pdb.set_trace()
         if self.neck == 'no':
@@ -179,7 +191,7 @@ class Critic_Baseline(nn.Module):
 
         if self.training:
             cls_score = self.classifier(feat)
-            return cls_score, global_feat  # global feature for triplet loss
+            return cls_score, global_feat,v  # global feature for triplet loss
         else:
             if self.neck_feat == 'after':
                 # print("Test with feature after BN")
